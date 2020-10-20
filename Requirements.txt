@@ -1,0 +1,39 @@
+# 1) Features [5 pts each]
+#       Display a running list of words found --- DONE
+#       Notify users when they submit an answer they already found -- DONE
+#       Start/Stop Button: -- DONE
+#       ** Hide the board until "Start" is clicked. -- DONE 
+#       ** Display remaining words when "Stop" is clicked -- DONE
+
+
+
+# 2) Stretch Features [Extra Credit. 5 pts each -  20pts max]
+#       Timed game -- DONE
+#       Make it pretty
+#       Generate random board
+#       Testing
+#       (anything you want)
+
+
+
+
+
+# 1) Features
+#       Manually populate Firestore with a set of (fixed) challenge grids [2 pts] -- DONE
+#       Add "Load Challenge" functionality [10 pts]
+#           Clicking "Load Challenge" displays a list of available challenges. -- DONE
+#           For each challenge, display the current high score (see below) -- DONE
+#           Selecting a challenge loads that grid -- DONE
+#       Leaderboard Functionality [3 pts]
+#           Sign-in via Google [2 pts] -- DONE
+#           While playing a challenge, score is automatically sent to Firebase [1 pts]
+#       Deploy the app to Firebase [5 pts] -- DONE
+#       
+
+
+# 2.) Stretch Features [Extra Credit. Must complete (3) first]
+#       Display a message when your rank changes.
+#       Multi-player mode [15 pts]
+#       Testing [10 pts]
+#       (anything you want)
+
