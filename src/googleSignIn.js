@@ -9,7 +9,8 @@ function googleSignIn() {
         var token = result.credential.accessToken;
         // The signed-in user info.
         var user = result.user;
-        console.log(result);
+        console.log(result.user.email);
+        return result.user.email;
         // ...
     }).catch(function (error) {
         // Handle Errors here.
@@ -20,6 +21,13 @@ function googleSignIn() {
         // The firebase.auth.AuthCredential type that was used.
         var credential = error.credential;
         // ...
+    }).then((email) => {
+        let promptResponse = prompt("Please enter your name.")
+
+        firebase.firestore().collection('users').doc(firebase.auth().currentUser.uid).set({
+            name: promptResponse,
+            email: email,
+         })
     });
 }
 

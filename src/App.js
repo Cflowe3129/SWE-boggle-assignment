@@ -35,9 +35,9 @@ var validAnswers = [];
 const findAllSolutions = require("./Boggle Implementation/boggle_solver");
 
 
-async function getUserInput(promptText, grid, dict) {
+async function getUserInput(promptText, grid, dict, puzzleState) {
 
-  var value = "";
+  var value = [];
   var trueGrid = [];
   // var grid = Array.from(grid);
   console.log(grid.size)
@@ -57,15 +57,35 @@ async function getUserInput(promptText, grid, dict) {
     let response = promptResoponse.toLowerCase();
     console.log(response)
     if (word === response) {
+      let score = word.length - 2;
+      console.log(score)
+      let puzzle = puzzleState.toString();
+      firebase.firestore().collection('users').doc(firebase.auth().currentUser.uid).collection("3x3").doc(puzzle).update({
+        score: firebase.firestore.FieldValue.increment(+score),
+      }).then(() => {
+        firebase.firestore().collection('users').doc(firebase.auth().currentUser.uid).collection("3x3").doc(puzzle).get().then((doc) => {
+          if(doc.exists) {
+            var userScore = doc.data().score.toString()
+            value.push(userScore);
+
+          }
+        })
+        
+      })
       console.log("true")
-      value = response;
+      value.push(response);
       console.log(value)
     }
   })
   return value;
 }
 
-
+async function clearScore(puzzle) {
+   firebase.firestore().collection('users').doc(firebase.auth().currentUser.uid).collection("3x3").doc(puzzle).set({
+    score: 0,
+  })
+  return 
+}
 class App extends React.Component {
 
   constructor(props) {
@@ -82,6 +102,7 @@ class App extends React.Component {
       line3: [],
       puzzle: 0,
       highScore: 0,
+      userScore: 0,
     }
     this.ref = firebase.firestore();
   }
@@ -138,7 +159,8 @@ class App extends React.Component {
   async updateBoard() {
     validAnswers = []
     this.setState({ word: '', correct: [], timer: 0});
-    this.componentDidMount();
+      this.componentDidMount();
+      return;
   }
 
 
@@ -172,6 +194,7 @@ class App extends React.Component {
           {/* Title and corredt input list */}
           <header className="Header-Title">Boggle Game High Score: {this.state.highScore}</header>
           {this.state.state === true && <p>Correct Answers</p>}
+          <header className="Header-Title">Your Score: {this.state.userScore}</header>
           {this.state.state === true && <p>{this.state.correct}</p>}
 
           {/* Full answer list and correct answers submitted */}
@@ -224,14 +247,16 @@ class App extends React.Component {
           <TextInput promptText="Enter Word" />   */}
 
           {this.state.state === true && <Button variant="contained" color="white" prompt="Enter Word" onClick={() => {
-            getUserInput(prompt, this.state.grids[this.state.puzzle], this.state.grids[this.state.puzzle].dictionary).then(function (result) {
+            getUserInput(prompt, this.state.grids[this.state.puzzle], this.state.grids[this.state.puzzle].dictionary, this.state.puzzle).then(function (result) {
               console.log("Returned");
-              console.log(result);
+              console.log(result[0]);
               return result;
             }).then((value) => {
-              if (!this.state.correct.includes(value + " ") && (value != "")) {
-                this.state.correct.push(value + " ")
-                this.setState({ correct: this.state.correct })
+              if (!this.state.correct.includes(value[0] + " ") && (value[0] != "")) {
+                this.state.correct.push(value[0] + " ")
+                console.log(value[1])
+                
+                this.setState({ correct: this.state.correct, userScore: value[1] })
                 console.log("STATE:" + this.state.correct)
               } else if (value == "") {
                 alert("This word is not in the dictionary. Please enter another word")
@@ -250,18 +275,20 @@ class App extends React.Component {
               }}> SignIn with Google </Button>
             </div>
 
-            <div>
+            {this.state.state != true && <div>
               <Button variant="contained" color="primary" onClick={() => {
                 console.log("Pressed");
                 console.log(this.state.grids.grid)
                 this.setState({ state: true });
                 this.updateBoard();
               }}> Start </Button>
-            </div>
+            </div>}
   
             {<div>
               <InputLabel htmlFor="select">Load Challenge</InputLabel>
-              <NativeSelect id="select" onChange={(value) => { console.log(value.target.value); this.setState({puzzle: value.target.value, state: true}); this.updateBoard()
+              <NativeSelect id="select" onChange={async(value) => { console.log(value.target.value); this.setState({puzzle: value.target.value, state: true}); await this.updateBoard().then(() => {
+                clearScore(this.state.puzzle);
+              })
               }}>
                 <option value="0">1 </option>
                 <option value="1">2 </option>
@@ -273,8 +300,11 @@ class App extends React.Component {
           <div className="Stop-Button">
             <Button variant="contained" color="secondary" onClick={() => {
               console.log("Pressed");
-              this.setState({ state: false });
-              
+              let puzzle = this.state.puzzle.toString();
+
+              clearScore(puzzle)
+                this.setState({ state: false });
+
             }}> Stop </Button>
           </div>
 
